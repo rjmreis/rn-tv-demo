@@ -7,7 +7,7 @@ import { Platform, Pressable } from 'react-native';
 const openBrowserAsync =
   Platform.isTV && Platform.OS === 'ios'
     ? async () => {}
-    : require('expo-web-browser').openBrowserAsync;
+    : require('expo-web-browser').openBrowserAsync; // eslint-disable-line @typescript-eslint/no-require-imports
 
 type Props = Omit<ComponentProps<typeof Link>, 'href'> & {
   href: string;
