@@ -5,7 +5,7 @@ export interface CatalogItem {
   thumbnail: string;
   poster?: string;
   streamUrl: string;
-  duration: number | string;
+  duration: number;
   genre?: string;
 }
 

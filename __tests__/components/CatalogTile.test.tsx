@@ -10,19 +10,17 @@ const mockItem: CatalogItem = {
   thumbnail: 'https://example.com/thumbnail.jpg',
   poster: 'https://example.com/poster.jpg',
   streamUrl: 'https://example.com/stream.mp4',
-  duration: '120 min',
-  genre: 'Action',
+  duration: 120,
 };
 
 describe('CatalogTile', () => {
-  it('should render item title and genre', () => {
+  it('should render item title', () => {
     const onPress = jest.fn();
     const { getByText } = render(
       <CatalogTile item={mockItem} onPress={onPress} testID="test-tile" />
     );
 
     expect(getByText('Test Movie')).toBeTruthy();
-    expect(getByText('Action')).toBeTruthy();
   });
 
   it('should call onPress when pressed', () => {

@@ -11,6 +11,9 @@ export default function OTTLayout() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
+        contentStyle: {
+          backgroundColor: 'transparent',
+        },
       }}
     >
       <Stack.Screen

@@ -32,7 +32,8 @@
     "ios": {
       "splash": {
         "image": "./assets/images/splash.png"
-      }
+      },
+      "bundleIdentifier": "com.reisr.rntvdemo"
     },
     "web": {
       "bundler": "metro",

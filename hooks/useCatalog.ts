@@ -25,5 +25,5 @@ export function useCatalog() {
     }
   };
 
-  return { catalog, loading, error, reload: loadCatalog };
+  return { catalog, loading, error };
 }

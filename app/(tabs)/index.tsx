@@ -4,11 +4,12 @@ import {
   FlatList,
   ActivityIndicator,
   Platform,
+  View,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { CatalogTile } from "@/components/CatalogTile";
+import { BackgroundImage } from "@/components/BackgroundImage";
 import { useCatalog } from "@/hooks/useCatalog";
 import { useScale } from "@/hooks/useScale";
 import { CatalogItem } from "@/types/catalog";
@@ -23,6 +24,39 @@ export default function HomeScreen() {
   const flatListRef = useRef<FlatList>(null);
   const lastFocusedRow = useRef<number>(0);
 
+  const styles = StyleSheet.create({
+    header: {
+      padding: 20 * scale,
+      paddingTop: Platform.OS === "ios" ? 60 * scale : 40 * scale,
+      backgroundColor: "transparent",
+    },
+    title: {
+      fontSize: 32 * scale,
+      fontWeight: "bold",
+      lineHeight: 40 * scale,
+    },
+    subtitle: {
+      fontSize: 16 * scale,
+      lineHeight: 24 * scale,
+      opacity: 0.7,
+      marginTop: 8 * scale,
+    },
+    listContainer: {
+      padding: 12 * scale,
+      paddingBottom: 50 * scale,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "transparent",
+    },
+    errorText: {
+      fontSize: 16 * scale,
+      color: "red",
+    },
+  });
+
   const handleItemPress = useCallback(
     (item: CatalogItem) => {
       router.push({
@@ -33,51 +67,65 @@ export default function HomeScreen() {
     [router]
   );
 
-  const handleItemFocus = useCallback((index: number) => {
-    if (Platform.isTV && flatListRef.current && catalog.length > 0) {
-      const numColumns = Platform.isTV ? 4 : 2;
-      const rowIndex = Math.floor(index / numColumns);
-      const totalRows = Math.ceil(catalog.length / numColumns);
+  const handleItemFocus = useCallback(
+    (index: number) => {
+      if (Platform.isTV && flatListRef.current && catalog.length > 0) {
+        const numColumns = Platform.isTV ? 4 : 2;
+        const rowIndex = Math.floor(index / numColumns);
+        const totalRows = Math.ceil(catalog.length / numColumns);
 
-      // Only scroll if the row has actually changed (not just horizontal movement)
-      if (rowIndex === lastFocusedRow.current) {
-        return; // Same row, no need to scroll
-      }
-
-      // Determine scroll direction
-      const movingDown = rowIndex > lastFocusedRow.current;
-      lastFocusedRow.current = rowIndex;
-
-      try {
-        // Use scrollToOffset instead of scrollToIndex for more control
-        const rowHeight = TILE_HEIGHT * scale;
-        const headerHeight = (40 + 32 + 8 + 16) * scale; // paddingTop + title + subtitle + marginTop
-        let targetOffset;
-
-        if (movingDown) {
-          // When moving down, ensure the focused row is fully visible
-          // Add extra space for the last row to show focus effects
-          if (rowIndex === totalRows - 1) {
-            // Last row: scroll more to show focus effects at bottom
-            targetOffset = Math.max(0, headerHeight + (rowIndex * rowHeight) - (50 * scale));
-          } else {
-            // Other rows: standard scroll
-            targetOffset = Math.max(0, headerHeight + (rowIndex * rowHeight) - (100 * scale));
-          }
-        } else {
-          // When moving up, position row higher on screen
-          targetOffset = Math.max(0, headerHeight + ((rowIndex - 1) * rowHeight));
+        // Only scroll if the row has actually changed (not just horizontal movement)
+        if (rowIndex === lastFocusedRow.current) {
+          return; // Same row, no need to scroll
         }
 
-        flatListRef.current.scrollToOffset({
-          offset: targetOffset,
-          animated: true,
-        });
-      } catch (error) {
-        console.log('ScrollToOffset error:', error);
+        // Determine scroll direction
+        const movingDown = rowIndex > lastFocusedRow.current;
+        lastFocusedRow.current = rowIndex;
+
+        try {
+          // Use scrollToOffset instead of scrollToIndex for more control
+          const rowHeight = TILE_HEIGHT * scale;
+          const headerHeight = (40 + 32 + 8 + 16) * scale; // paddingTop + title + subtitle + marginTop
+          let targetOffset;
+
+          if (movingDown) {
+            // When moving down, ensure the focused row is fully visible
+            // Add extra space for the last row to show focus effects
+            if (rowIndex === totalRows - 1) {
+              // Last row: scroll more to show focus effects at bottom
+              targetOffset = Math.max(
+                0,
+                headerHeight + rowIndex * rowHeight - 50 * scale
+              );
+            } else {
+              // Other rows: standard scroll
+              targetOffset = Math.max(
+                0,
+                headerHeight + rowIndex * rowHeight - 100 * scale
+              );
+            }
+          } else {
+            // When moving up, position row higher on screen
+            targetOffset = Math.max(
+              0,
+              headerHeight + (rowIndex - 1) * rowHeight
+            );
+          }
+
+          flatListRef.current.scrollToOffset({
+            offset: targetOffset,
+            animated: true,
+          });
+        } catch (error) {
+          if (__DEV__) {
+            console.log("ScrollToOffset error:", error);
+          }
+        }
       }
-    }
-  }, [catalog.length, scale]);
+    },
+    [catalog.length, scale]
+  );
 
   const getItemLayout = useCallback(
     (_data: any, index: number) => {
@@ -93,6 +141,18 @@ export default function HomeScreen() {
   );
 
   const keyExtractor = useCallback((item: CatalogItem) => item.id, []);
+
+  const renderHeader = useCallback(
+    () => (
+      <View style={styles.header}>
+        <ThemedText style={styles.title}>Featured Content</ThemedText>
+        <ThemedText style={styles.subtitle}>
+          Browse our collection of {catalog.length} titles
+        </ThemedText>
+      </View>
+    ),
+    [catalog.length, styles.header, styles.subtitle, styles.title]
+  );
 
   const renderItem = useCallback(
     ({ item, index }: { item: CatalogItem; index: number }) => {
@@ -122,77 +182,44 @@ export default function HomeScreen() {
     [catalog.length, handleItemPress, handleItemFocus]
   );
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    header: {
-      padding: 20 * scale,
-      paddingTop: Platform.isTV ? 40 * scale : 20 * scale,
-    },
-    title: {
-      fontSize: 32 * scale,
-      fontWeight: "bold",
-    },
-    subtitle: {
-      fontSize: 16 * scale,
-      opacity: 0.7,
-      marginTop: 8 * scale,
-    },
-    listContainer: {
-      padding: 12 * scale,
-      paddingBottom: 120 * scale,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    errorText: {
-      fontSize: 16 * scale,
-      color: "red",
-    },
-  });
-
   if (loading) {
     return (
-      <ThemedView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
-        <ThemedText style={{ marginTop: 16 * scale }}>
-          Loading catalog...
-        </ThemedText>
-      </ThemedView>
+      <BackgroundImage>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+          <ThemedText style={{ marginTop: 16 * scale }}>
+            Loading catalog...
+          </ThemedText>
+        </View>
+      </BackgroundImage>
     );
   }
 
   if (error) {
     return (
-      <ThemedView style={styles.loadingContainer}>
-        <ThemedText style={styles.errorText}>
-          Error loading catalog: {error.message}
-        </ThemedText>
-      </ThemedView>
+      <BackgroundImage>
+        <View style={styles.loadingContainer}>
+          <ThemedText style={styles.errorText}>
+            Error loading catalog: {error.message}
+          </ThemedText>
+        </View>
+      </BackgroundImage>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <ThemedText style={styles.title}>Featured Content</ThemedText>
-        <ThemedText style={styles.subtitle}>
-          Browse our collection of {catalog.length} titles
-        </ThemedText>
-      </ThemedView>
+    <BackgroundImage>
       <FlatList
         ref={flatListRef}
         data={catalog}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         numColumns={Platform.isTV ? 4 : 2}
+        ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.listContainer}
         getItemLayout={getItemLayout}
         testID="catalog-list"
       />
-    </ThemedView>
+    </BackgroundImage>
   );
 }

@@ -4,7 +4,6 @@ import {
   Pressable,
   View,
   ActivityIndicator,
-  Platform,
   BackHandler,
   useTVEventHandler,
 } from "react-native";
@@ -15,18 +14,24 @@ import { ThemedText } from "@/components/ThemedText";
 import { useCatalog } from "@/hooks/useCatalog";
 import { useScale } from "@/hooks/useScale";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useFormatters } from "@/hooks/useFormatters";
 
 export default function PlayerScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const { catalog } = useCatalog();
-  const router = useRouter();
-  const scale = useScale();
   const videoRef = useRef<VideoRef>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { catalog } = useCatalog();
+  const { formatTime } = useFormatters();
+  const router = useRouter();
+  const scale = useScale();
+
   const [paused, setPaused] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [showOverlays, setShowOverlays] = useState(true);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const tintColor = useThemeColor({}, "tint");
 
   const item = catalog.find((i) => i.id === id);
@@ -84,7 +89,9 @@ export default function PlayerScreen() {
   if (!item) {
     return (
       <ThemedView style={styles(scale).container}>
-        <ThemedText style={styles(scale).errorText}>Video not found</ThemedText>
+        <ThemedText style={styles(scale).errorMessage}>
+          Video not found
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -93,6 +100,7 @@ export default function PlayerScreen() {
     <Pressable
       style={styles(scale).container}
       onPress={showOverlaysTemporarily}
+      focusable={!error && !loading}
     >
       <Video
         ref={videoRef}
@@ -101,11 +109,17 @@ export default function PlayerScreen() {
         paused={paused}
         controls={false}
         resizeMode="contain"
-        volume={4.0}
+        volume={1.0}
         muted={false}
         audioOutput="speaker"
         ignoreSilentSwitch="ignore"
-        onLoad={() => setLoading(false)}
+        onLoad={(data) => {
+          setLoading(false);
+          setDuration(data.duration);
+        }}
+        onProgress={(data) => {
+          setCurrentTime(data.currentTime);
+        }}
         onError={() => {
           setError(true);
           setLoading(false);
@@ -123,9 +137,27 @@ export default function PlayerScreen() {
       )}
       {error && (
         <View style={styles(scale).loadingOverlay}>
-          <ThemedText style={styles(scale).errorText}>
-            Error loading video. Please try again.
+          <ThemedText style={styles(scale).errorIcon}>⚠</ThemedText>
+          <ThemedText style={styles(scale).errorTitle}>
+            Unable to Load Video
           </ThemedText>
+          <ThemedText style={styles(scale).errorMessage}>
+            We couldn&apos;t load this video. Please check your connection and
+            try again.
+          </ThemedText>
+          <Pressable
+            style={({ focused }) => [
+              styles(scale).backButton,
+              focused && styles(scale).backButtonFocused,
+            ]}
+            onPress={() => router.back()}
+            hasTVPreferredFocus={true}
+            testID="error-back-button"
+          >
+            <ThemedText style={styles(scale).backButtonText}>
+              Go Back
+            </ThemedText>
+          </Pressable>
         </View>
       )}
 
@@ -134,6 +166,28 @@ export default function PlayerScreen() {
           <ThemedText style={styles(scale).title} testID="player-title">
             {item.title}
           </ThemedText>
+          <View style={styles(scale).progressContainer}>
+            <ThemedText style={styles(scale).timeText}>
+              {formatTime(currentTime)}
+            </ThemedText>
+            <View style={styles(scale).progressBarContainer}>
+              <View style={styles(scale).progressBarBackground} />
+              <View
+                style={[
+                  styles(scale).progressBarFill,
+                  {
+                    width: `${
+                      duration > 0 ? (currentTime / duration) * 100 : 0
+                    }%`,
+                    backgroundColor: tintColor,
+                  },
+                ]}
+              />
+            </View>
+            <ThemedText style={styles(scale).timeText}>
+              {formatTime(duration)}
+            </ThemedText>
+          </View>
           <ThemedText style={styles(scale).statusText}>
             {paused ? "⏸ Paused" : "▶ Playing"}
           </ThemedText>
@@ -179,9 +233,75 @@ const styles = (scale: number) =>
       opacity: 0.8,
       marginTop: 8 * scale,
     },
-    errorText: {
+    progressContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 16 * scale,
+      gap: 12 * scale,
+    },
+    progressBarContainer: {
+      flex: 1,
+      height: 6 * scale,
+      position: "relative",
+      borderRadius: 3 * scale,
+      overflow: "hidden",
+    },
+    progressBarBackground: {
+      position: "absolute",
+      width: "100%",
+      height: "100%",
+      backgroundColor: "rgba(255,255,255,0.3)",
+    },
+    progressBarFill: {
+      position: "absolute",
+      height: "100%",
+      borderRadius: 3 * scale,
+    },
+    timeText: {
+      fontSize: 14 * scale,
+      color: "#fff",
+      fontVariant: ["tabular-nums"],
+      minWidth: 40 * scale,
+      textAlign: "center",
+    },
+    errorIcon: {
+      fontSize: 48 * scale,
+      textAlign: "center",
+      marginBottom: 16 * scale,
+      opacity: 0.8,
+    },
+    errorTitle: {
+      fontSize: 24 * scale,
+      fontWeight: "bold",
+      color: "#fff",
+      textAlign: "center",
+      marginBottom: 12 * scale,
+    },
+    errorMessage: {
       fontSize: 16 * scale,
-      color: "red",
+      color: "#fff",
+      textAlign: "center",
+      opacity: 0.7,
+      marginBottom: 24 * scale,
+      maxWidth: 400 * scale,
+    },
+    backButton: {
+      backgroundColor: "rgba(255,255,255,0.15)",
+      paddingHorizontal: 32 * scale,
+      paddingVertical: 12 * scale,
+      borderRadius: 8 * scale,
+      borderWidth: 2,
+      borderColor: "rgba(255,255,255,0.3)",
+    },
+    backButtonFocused: {
+      backgroundColor: "rgba(255,255,255,0.25)",
+      borderColor: "#fff",
+      transform: [{ scale: 1.05 }],
+    },
+    backButtonText: {
+      fontSize: 18 * scale,
+      fontWeight: "600",
+      color: "#fff",
       textAlign: "center",
     },
   });

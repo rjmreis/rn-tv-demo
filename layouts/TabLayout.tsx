@@ -1,16 +1,16 @@
-import { NativeTabs, Label, Icon } from 'expo-router/unstable-native-tabs';
-import { Platform } from 'react-native';
+import { NativeTabs, Label, Icon } from "expo-router/unstable-native-tabs";
+import { Platform } from "react-native";
 
-import WebTabLayout from './TabLayout.web';
+import WebTabLayout from "./TabLayout.web";
 
 export default function TabLayout() {
-  if (Platform.OS === 'android' && Platform.isTV) {
+  if (Platform.OS === "android" && Platform.isTV) {
     return <WebTabLayout />;
   }
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
-        <Label>Home</Label>
+        <Label>RN TV Demo</Label>
         <Icon sf="play.tv" />
       </NativeTabs.Trigger>
     </NativeTabs>

@@ -59,4 +59,58 @@ describe('useFormatters', () => {
       expect(secondReference).toBe(firstReference);
     });
   });
+
+  describe('formatTime', () => {
+    it('should format time with minutes and seconds', () => {
+      const { result } = renderHook(() => useFormatters());
+      expect(result.current.formatTime(90)).toBe('1:30');
+      expect(result.current.formatTime(125)).toBe('2:05');
+      expect(result.current.formatTime(3661)).toBe('61:01');
+    });
+
+    it('should format time with zero-padded seconds', () => {
+      const { result } = renderHook(() => useFormatters());
+      expect(result.current.formatTime(60)).toBe('1:00');
+      expect(result.current.formatTime(65)).toBe('1:05');
+      expect(result.current.formatTime(5)).toBe('0:05');
+    });
+
+    it('should format time for seconds less than a minute', () => {
+      const { result } = renderHook(() => useFormatters());
+      expect(result.current.formatTime(30)).toBe('0:30');
+      expect(result.current.formatTime(59)).toBe('0:59');
+      expect(result.current.formatTime(1)).toBe('0:01');
+    });
+
+    it('should handle 0 seconds', () => {
+      const { result } = renderHook(() => useFormatters());
+      expect(result.current.formatTime(0)).toBe('0:00');
+    });
+
+    it('should handle NaN input', () => {
+      const { result } = renderHook(() => useFormatters());
+      expect(result.current.formatTime(NaN)).toBe('0:00');
+    });
+
+    it('should handle large time values', () => {
+      const { result } = renderHook(() => useFormatters());
+      expect(result.current.formatTime(3600)).toBe('60:00');
+      expect(result.current.formatTime(7200)).toBe('120:00');
+      expect(result.current.formatTime(7265)).toBe('121:05');
+    });
+
+    it('should handle fractional seconds by flooring', () => {
+      const { result } = renderHook(() => useFormatters());
+      expect(result.current.formatTime(90.7)).toBe('1:30');
+      expect(result.current.formatTime(125.9)).toBe('2:05');
+    });
+
+    it('should be memoized and return the same function reference', () => {
+      const { result } = renderHook(() => useFormatters());
+      const firstReference = result.current.formatTime;
+      const secondReference = result.current.formatTime;
+
+      expect(secondReference).toBe(firstReference);
+    });
+  });
 });

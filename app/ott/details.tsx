@@ -1,8 +1,7 @@
-import { StyleSheet, Image, Pressable, Platform } from 'react-native';
-import { useRouter, useLocalSearchParams, useNavigation } from 'expo-router';
-import { useEffect } from 'react';
-import { ThemedView } from '@/components/ThemedView';
+import { StyleSheet, Image, Pressable, Platform, View } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
+import { BackgroundImage } from '@/components/BackgroundImage';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useScale } from '@/hooks/useScale';
 import { useThemeColor } from '@/hooks/useThemeColor';
@@ -12,7 +11,6 @@ export default function DetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { catalog } = useCatalog();
   const router = useRouter();
-  const navigation = useNavigation();
   const scale = useScale();
   const tintColor = useThemeColor({}, 'tint');
   const backgroundColor = useThemeColor({}, 'background');
@@ -21,20 +19,13 @@ export default function DetailsScreen() {
 
   const item = catalog.find((i) => i.id === id);
 
-  // Set the navigation title to the movie name
-  useEffect(() => {
-    if (item) {
-      navigation.setOptions({
-        title: item.title,
-      });
-    }
-  }, [item, navigation]);
-
   if (!item) {
     return (
-      <ThemedView style={styles(scale).container}>
-        <ThemedText style={styles(scale).errorText}>Item not found</ThemedText>
-      </ThemedView>
+      <BackgroundImage>
+        <View style={styles(scale).container}>
+          <ThemedText style={styles(scale).errorText}>Item not found</ThemedText>
+        </View>
+      </BackgroundImage>
     );
   }
 
@@ -57,6 +48,8 @@ export default function DetailsScreen() {
       borderRadius: 8 * scale,
       alignItems: 'center',
       justifyContent: 'center',
+      borderWidth: 3,
+      borderColor: 'transparent',
     },
     playButtonFocused: {
       backgroundColor: tintColor,
@@ -65,7 +58,6 @@ export default function DetailsScreen() {
       borderRadius: 8 * scale,
       alignItems: 'center',
       justifyContent: 'center',
-      transform: [{ scale: 1.05 }],
       borderWidth: 3,
       borderColor: '#fff',
     },
@@ -81,6 +73,8 @@ export default function DetailsScreen() {
       borderRadius: 8 * scale,
       alignItems: 'center',
       justifyContent: 'center',
+      borderWidth: 3,
+      borderColor: 'transparent',
     },
     backButtonFocused: {
       backgroundColor: '#333',
@@ -89,7 +83,6 @@ export default function DetailsScreen() {
       borderRadius: 8 * scale,
       alignItems: 'center',
       justifyContent: 'center',
-      transform: [{ scale: 1.05 }],
       borderWidth: 3,
       borderColor: tintColor,
     },
@@ -101,55 +94,57 @@ export default function DetailsScreen() {
   });
 
   return (
-    <ThemedView style={styles(scale).container}>
-      <ThemedView style={styles(scale).content}>
-        <ThemedView style={styles(scale).posterContainer}>
-          <Image
-            source={{ uri: item.poster || item.thumbnail }}
-            style={styles(scale).poster}
-            resizeMode="cover"
-            testID="details-poster"
-          />
-        </ThemedView>
-        <ThemedView style={styles(scale).detailsContainer}>
-          <ThemedText style={styles(scale).title} testID="details-title">
-            {item.title}
-          </ThemedText>
-          <ThemedView style={styles(scale).metaContainer}>
-            {item.genre && (
-              <>
-                <ThemedText style={styles(scale).meta}>{item.genre}</ThemedText>
-                <ThemedText style={styles(scale).meta}> • </ThemedText>
-              </>
-            )}
-            <ThemedText style={styles(scale).meta}>{formatDuration(item.duration)}</ThemedText>
-          </ThemedView>
-          <ThemedText style={styles(scale).description} numberOfLines={6} testID="details-description">
-            {item.description}
-          </ThemedText>
-          <ThemedView style={styles(scale).buttonContainer}>
-            <Pressable
-              onPress={handlePlayPress}
-              style={({ focused }) =>
-                focused ? dynamicStyles.playButtonFocused : dynamicStyles.playButton
-              }
-              testID="play-button"
-            >
-              <ThemedText style={dynamicStyles.playButtonText}>▶ Play</ThemedText>
-            </Pressable>
-            <Pressable
-              onPress={handleBackPress}
-              style={({ focused }) =>
-                focused ? dynamicStyles.backButtonFocused : dynamicStyles.backButton
-              }
-              testID="back-button"
-            >
-              <ThemedText style={dynamicStyles.backButtonText}>← Back</ThemedText>
-            </Pressable>
-          </ThemedView>
-        </ThemedView>
-      </ThemedView>
-    </ThemedView>
+    <BackgroundImage>
+      <View style={styles(scale).container}>
+        <View style={styles(scale).content}>
+          <View style={styles(scale).posterContainer}>
+            <Image
+              source={{ uri: item.poster || item.thumbnail }}
+              style={styles(scale).poster}
+              resizeMode="cover"
+              testID="details-poster"
+            />
+          </View>
+          <View style={styles(scale).detailsContainer}>
+            <ThemedText style={styles(scale).title} testID="details-title">
+              {item.title}
+            </ThemedText>
+            <View style={styles(scale).metaContainer}>
+              {item.genre && (
+                <>
+                  <ThemedText style={styles(scale).meta}>{item.genre}</ThemedText>
+                  <ThemedText style={styles(scale).meta}> • </ThemedText>
+                </>
+              )}
+              <ThemedText style={styles(scale).meta}>{formatDuration(item.duration)}</ThemedText>
+            </View>
+            <ThemedText style={styles(scale).description} numberOfLines={6} testID="details-description">
+              {item.description}
+            </ThemedText>
+            <View style={styles(scale).buttonContainer}>
+              <Pressable
+                onPress={handlePlayPress}
+                style={({ focused }) =>
+                  focused ? dynamicStyles.playButtonFocused : dynamicStyles.playButton
+                }
+                testID="play-button"
+              >
+                <ThemedText style={dynamicStyles.playButtonText}>▶ Play</ThemedText>
+              </Pressable>
+              <Pressable
+                onPress={handleBackPress}
+                style={({ focused }) =>
+                  focused ? dynamicStyles.backButtonFocused : dynamicStyles.backButton
+                }
+                testID="back-button"
+              >
+                <ThemedText style={dynamicStyles.backButtonText}>← Back</ThemedText>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </View>
+    </BackgroundImage>
   );
 }
 
@@ -157,24 +152,28 @@ const styles = (scale: number) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: 'transparent',
     },
     content: {
       padding: 20 * scale,
       paddingTop: Platform.isTV ? 40 * scale : 20 * scale,
       flexDirection: 'row',
       gap: 40 * scale,
+      backgroundColor: 'transparent',
     },
     posterContainer: {
       width: 350 * scale,
+      backgroundColor: 'transparent',
     },
     poster: {
       width: 350 * scale,
-      height: 525 * scale,
+      height: 500 * scale,
       borderRadius: 12 * scale,
     },
     detailsContainer: {
       flex: 1,
       justifyContent: 'center',
+      backgroundColor: 'transparent',
     },
     title: {
       fontSize: 40 * scale,
@@ -185,6 +184,7 @@ const styles = (scale: number) =>
     metaContainer: {
       flexDirection: 'row',
       marginBottom: 20 * scale,
+      backgroundColor: 'transparent',
     },
     meta: {
       fontSize: 18 * scale,
@@ -197,7 +197,8 @@ const styles = (scale: number) =>
     },
     buttonContainer: {
       flexDirection: 'row',
-      gap: 16 * scale,
+      gap: 20 * scale,
+      backgroundColor: 'transparent',
     },
     errorText: {
       fontSize: 18 * scale,

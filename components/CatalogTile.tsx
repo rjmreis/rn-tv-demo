@@ -4,6 +4,7 @@ import {
   Image,
   Platform,
   TVFocusGuideView,
+  View,
 } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -44,38 +45,45 @@ export function CatalogTile({
       overflow: "hidden",
     },
     pressableFocused: {
-      borderWidth: 4,
+      borderWidth: 3,
       borderColor: highlightColor,
       borderRadius: 8 * scale,
       overflow: "hidden",
-      transform: Platform.isTV ? [{ scale: 1.05 }] : [],
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 8,
-      },
-      shadowOpacity: 0.5,
-      shadowRadius: 12,
-      elevation: 12,
+      transform: [{ scale: 1.05 }],
     },
     thumbnail: {
       width: "100%",
-      height: 240 * scale,
+      height: 200 * scale,
       backgroundColor: "#333",
+      borderTopLeftRadius: 4 * scale,
+      borderTopRightRadius: 4 * scale,
+    },
+    thumbnailFocused: {
+      width: "100%",
+      height: 200 * scale,
+      backgroundColor: "#333",
+      borderTopLeftRadius: 5 * scale,
+      borderTopRightRadius: 5 * scale,
     },
     titleContainer: {
       padding: 8 * scale,
       backgroundColor: backgroundColor,
       minHeight: 50 * scale,
+      borderBottomLeftRadius: 4 * scale,
+      borderBottomRightRadius: 4 * scale,
+      opacity: 0.7,
+    },
+    titleContainerFocused: {
+      padding: 8 * scale,
+      backgroundColor: backgroundColor,
+      minHeight: 50 * scale,
+      borderBottomLeftRadius: 5 * scale,
+      borderBottomRightRadius: 5 * scale,
+      opacity: 1,
     },
     title: {
       fontSize: 14 * scale,
       fontWeight: "600",
-    },
-    genre: {
-      fontSize: 12 * scale,
-      opacity: 0.7,
-      marginTop: 4 * scale,
     },
   });
 
@@ -87,24 +95,25 @@ export function CatalogTile({
         focused ? styles.pressableFocused : styles.pressable
       }
     >
-      <Image
-        source={{ uri: item.thumbnail }}
-        style={styles.thumbnail}
-        resizeMode="cover"
-      />
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText style={styles.title} numberOfLines={2}>
-          {item.title}
-        </ThemedText>
-        {item.genre && (
-          <ThemedText style={styles.genre}>{item.genre}</ThemedText>
-        )}
-      </ThemedView>
+      {({ focused }) => (
+        <>
+          <Image
+            source={{ uri: item.thumbnail }}
+            style={focused ? styles.thumbnailFocused : styles.thumbnail}
+            resizeMode="cover"
+          />
+          <ThemedView style={focused ? styles.titleContainerFocused : styles.titleContainer}>
+            <ThemedText style={styles.title} numberOfLines={2}>
+              {item.title}
+            </ThemedText>
+          </ThemedView>
+        </>
+      )}
     </Pressable>
   );
 
   return (
-    <ThemedView style={styles.container} testID={testID}>
+    <View style={styles.container} testID={testID}>
       {Platform.isTV && (trapFocusRight || trapFocusDown) ? (
         <TVFocusGuideView
           trapFocusRight={trapFocusRight || false}
@@ -115,6 +124,6 @@ export function CatalogTile({
       ) : (
         content
       )}
-    </ThemedView>
+    </View>
   );
 }

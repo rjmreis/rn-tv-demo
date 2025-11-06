@@ -1,41 +1,29 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Pressable } from 'react-native';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { useTextStyles } from '@/hooks/useTextStyles';
+import { Tabs } from "expo-router";
+import React from "react";
+import { Pressable } from "react-native";
+import { useTextStyles } from "@/hooks/useTextStyles";
+import { useThemeColor } from "@/hooks/useThemeColor";
 
 /**
  * This layout is required for the web platform.
  */
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
   const textStyles = useTextStyles();
 
   const tabBarButton = (props: any) => {
-    const style: any = props.style ?? {};
-    return (
-      <Pressable
-        {...props}
-        style={({ pressed, focused }) => [
-          style,
-          {
-            opacity: pressed || focused ? 0.6 : 1.0,
-          },
-        ]}
-      />
-    );
+    return <Pressable {...props} />;
   };
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        tabBarActiveBackgroundColor: Colors[colorScheme ?? 'light'].background,
+        tabBarActiveTintColor: useThemeColor({}, "text"),
+        tabBarInactiveTintColor: useThemeColor({}, "tint"),
+        tabBarActiveBackgroundColor: useThemeColor({}, "backgroundSecondary"),
         tabBarStyle: {
-          width: '100%',
+          width: "100%",
         },
-        tabBarPosition: 'top',
+        tabBarPosition: "top",
         tabBarIconStyle: {
           height: textStyles.title.lineHeight,
           width: 0,
@@ -46,7 +34,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'OTT Demo',
+          title: "RN TV Demo",
           tabBarButton,
           tabBarLabelStyle: textStyles.default,
           tabBarIcon: () => null,
