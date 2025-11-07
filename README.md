@@ -268,6 +268,10 @@ function MyComponent() {
 - [ ] **Accessibility**: Add proper accessibility labels and ARIA attributes
 - [ ] **Custom Header**: Add branded header with logo and navigation for better UI/UX experience
 
+### Internationalization / Localization
+- [ ] **Translation Integration**: Replace placeholder text with proper translations via i18n library
+- [ ] **Language Switcher**: Add an in-app language selector for users
+
 ### Features
 - [ ] **Search Functionality**: Add search bar with filtering across catalog
 - [ ] **Category Filtering**: Filter content by genre/category
